@@ -24,7 +24,7 @@ SOFTWARE.
 """
 
 from . import httpai, errors
-import urllib
+import urllib, aiohttp
 
 noresponse = "Couldn't contact the API right now..."
 
@@ -43,12 +43,17 @@ _possible_nsfw = [
 async def eightball() -> dict:
     """That's 8ball!
 
+    Raises:
+        errors.NothingFound: API didn't return anything
+
     Returns:
         dict: Answer of 8ball
     """
-    r = await httpai.nekos_api.get_as_json("/8ball")
-    return {"text": r["response"], "image": r["url"]}
-
+    try:
+        r = await httpai.nekos_api.get_as_json("/8ball")
+        return {"text": r["response"], "image": r["url"]}
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 async def img(target: str = None) -> str:
     """Gets random image from Nekos API by given category
@@ -65,24 +70,23 @@ async def img(target: str = None) -> str:
     """
     if target is None:
         raise errors.EmptyArgument(
-            f"You have to at least define an argument in string format\nArguments SFW: {_possible_everywhere}\nArguments NSFW: {_possible_nsfw}"
+            f"\nArguments SFW: {_possible_everywhere}\nArguments NSFW: {_possible_nsfw}"
         )
+    
+    target = target.lower()
 
-    if target.lower() not in _possible_everywhere or target.lower() not in _possible_nsfw:
+    # line below is equals to two checks "target not in list"
+    if target not in ((L:=list(_possible_everywhere)).extend(_possible_nsfw) or L):
         raise errors.InvalidArgument(
-            f"You haven't added any valid arguments\nArguments SFW: {_possible_everywhere}\nArguments NSFW: {_possible_nsfw}"
+            f"You haven't added any valid arguments.\nArguments SFW: {_possible_everywhere}\nArguments NSFW: {_possible_nsfw}"
         )
 
-    #try:
-    if target.lower() == "random_hentai_gif":
-        r = await httpai.nekos_api.get("/img/Random_hentai_gif")
-    else:
-        r = await httpai.nekos_api.get("/img/" + target.lower())
-    # that's very ugly
-    #except Exception:
-    #    raise errors.NothingFound(noresponse)
-
-    return r["url"]
+    try:
+        target = target.replace("random_hentai_gif", "Random_hentai_gif")
+        r = await httpai.nekos_api.get_as_json("/img/" + target)
+        return r["url"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 
 async def owoify(text: str = None) -> str:
@@ -94,18 +98,20 @@ async def owoify(text: str = None) -> str:
         text (str): Text to OwOify
 
     Raises:
+        errors.NothingFound: API didn't return anything
         errors.EmptyArgument: Text is None or not provided
 
     Returns:
         str: OwOified text
     """
     if text is None:
-        raise errors.EmptyArgument(
-            "You have to enter a string you want to enter to API"
-        )
+        raise errors.EmptyArgument
 
-    r = await httpai.nekos_api.get("/owoify?text=" + urllib.parse.quote(text))
-    return r["owo"]
+    try:
+        r = await httpai.nekos_api.get_as_json("/owoify?text=" + urllib.parse.quote(text))
+        return r["owo"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 
 async def spoiler(text: str = None) -> str:
@@ -115,75 +121,90 @@ async def spoiler(text: str = None) -> str:
         text (str): Text to make it "spoilered"
 
     Raises:
+        errors.NothingFound: API didn't return anything
         errors.EmptyArgument: Text is None or not provided
 
     Returns:
         str: ||S||||p||||o||||i||||l||||e||||r||||s||
     """
     if text is None:
-        raise errors.EmptyArgument(
-            "You have to enter a string you want to enter to API"
-        )
-
-    r = await httpai.nekos_api.get("/spoiler?text=" + urllib.parse.quote(text))
-    return r["owo"]
+        raise errors.EmptyArgument
+    try:
+        r = await httpai.nekos_api.get_as_json("/spoiler?text=" + urllib.parse.quote(text))
+        return r["owo"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 
 async def cat() -> str:
     """Random cat picture
 
+    Raises:
+        errors.NothingFound: API didn't return anything
+
     Returns:
         str: Link to random cat image
     """
-    #try:
-    return (await httpai.nekos_api.get("/img/meow"))["url"]
-    #except Exception:
-    #    raise errors.NothingFound(noresponse)
+    try:
+        return (await httpai.nekos_api.get_as_json("/img/meow"))["url"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 
 async def textcat() -> str:
     """Random text cat
 
+    Raises:
+        errors.NothingFound: API didn't return anything
+
     Returns:
         str: Cool cat made using symbols
     """
-    #try:
-    return (await httpai.nekos_api.get("/cat"))["cat"]
-    #except Exception:
-    #    raise errors.NothingFound(noresponse)
-
+    try:
+        return (await httpai.nekos_api.get_as_json("/cat"))["cat"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 async def why() -> str:
     """Random "why" question
 
+    Raises:
+        errors.NothingFound: API didn't return anything
+
     Returns:
         str: Random "why" question (yeah)
     """
-    #try:
-    return (await httpai.nekos_api.get("/why"))["why"]
-    #except Exception:
-    #    raise errors.NothingFound(noresponse)
+    try:
+        return (await httpai.nekos_api.get_as_json("/why"))["why"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 
 async def fact() -> str:
     """Random fact
 
+    Raises:
+        errors.NothingFound: API didn't return anything
+
     Returns:
         str: Random fact!
     """
-    #try:
-    return (await httpai.nekos_api.get("/fact"))["fact"]
-    #except Exception:
-    #    raise errors.NothingFound(noresponse)
+    try:
+        return (await httpai.nekos_api.get_as_json("/fact"))["fact"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e
 
 
 async def name() -> str:
     """Generates (?) random name
 
+    Raises:
+        errors.NothingFound: API didn't return anything
+
     Returns:
         str: Generated name
     """
-    #try:
-    return (await httpai.nekos_api.get("/name"))["name"]
-    #except Exception:
-    #    raise errors.NothingFound(noresponse)
+    try:
+        return (await httpai.nekos_api.get_as_json("/name"))["name"]
+    except (KeyError, ValueError, aiohttp.client_exceptions.ClientConnectorError) as e:
+        raise errors.NothingFound from e

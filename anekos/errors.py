@@ -26,12 +26,14 @@ SOFTWARE.
 class NekoException(Exception):
     """Base exception class for anekos.py """
     pass
-# class NothingFound(NekoException):
-#     """The API didn't return anything"""
-#     pass
+class NothingFound(NekoException):
+    """The API didn't return anything"""
+    def __init__(self, *args):
+        super(NothingFound, self).__init__("Nekos API didn't return anything.", *args)
 class EmptyArgument(NekoException):
     """When no target is defined"""
-    pass
+    def __init__(self, *args):
+        super(EmptyArgument, self).__init__("You have to at least define an argument in string format.", *args)
 class InvalidArgument(NekoException):
     """Invalid argument within the category"""
     pass

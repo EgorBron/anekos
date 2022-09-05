@@ -2,6 +2,6 @@
 
 Async [Nekos.life](https://nekos.life/) API interactor.
 
-Just a shitty version with some async things, also with both mine and [original module](https://github.com/Nekos-life/nekos.py/) features.
+Just a shitty version with [original module](https://github.com/Nekos-life/nekos.py/) features, but it is async!
 
-Nekos.life APi v2 supported.
+Nekos.life API v2 supported.

@@ -35,21 +35,21 @@ except ImportError:
 class NekosAsyncAPI:
     def __init__(self, base_url):
         self.base_url = base_url
-        self.session = aiohttp.ClientSession(json_serialize=json) 
 
     async def get(self, url, **kwargs):
-        async with self.session.get(self.base_url+url, **kwargs) as resp:
-            return resp
+        async with aiohttp.ClientSession(json_serialize=json) as session:
+            async with session.get(self.base_url+url, **kwargs) as resp:
+                return resp
 
     async def post(self, url, **kwargs):
-        async with self.session.post(self.base_url+url, **kwargs) as resp:
-            return resp
+        async with aiohttp.ClientSession(json_serialize=json) as session:
+            async with session.post(self.base_url+url, **kwargs) as resp:
+                return resp
 
     async def get_as_json(self, url, **kwargs):
-        async with self.session.get(self.base_url+url, **kwargs) as resp:
-            return await resp.json()
-    def __del__(self):
-        self.session.close()
+        async with aiohttp.ClientSession(json_serialize=json) as session:
+            async with session.get(self.base_url+url, **kwargs) as resp:
+                return await resp.json()
 
 
 
