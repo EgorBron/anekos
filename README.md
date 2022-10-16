@@ -1,3 +1,5 @@
+> **Warning**: library may not work
+
 # anekos
 
 Async [Nekos.life](https://nekos.life/) API interactor.
